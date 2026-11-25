@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudShield UNIMINUTO | Detección de Fraudes en Pagos en Línea</title>
+    <!-- Google Fonts: Inter & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            navy: '#0B2C4A',
+                            navyLight: '#133E66',
+                            navyDark: '#071D32',
+                            gold: '#FFC907',
+                            goldHover: '#E5B400',
+                            green: '#22C55E',
+                            red: '#EF4444',
+                            surface: '#F8FAFC'
+                        }
+                    },
+                    boxShadow: {
+                        'fintech': '0 4px 20px -2px rgba(11, 44, 74, 0.06), 0 2px 6px -1px rgba(11, 44, 74, 0.04)',
+                        'fintech-hover': '0 12px 28px -4px rgba(11, 44, 74, 0.12), 0 4px 10px -2px rgba(11, 44, 74, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F8FAFC;
+            color: #0F172A;
+            overflow-x: hidden;
+        }
+        .glass-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at top right, rgba(255, 201, 7, 0.14), transparent 45%),
+                        radial-gradient(circle at bottom left, rgba(11, 44, 74, 0.06), transparent 50%),
+                        #FFFFFF;
+        }
+        .step-connector::after {
+            content: '';
+            position: absolute;
+            top: 28px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #0B2C4A 50%, #CBD5E1 50%);
+            background-size: 200% 100%;
+            background-position: right bottom;
+            transition: background-position 0.6s ease;
+            z-index: 0;
+        }
+        .step-connector.active::after {
+            background-position: left bottom;
+        }
+        @media (max-width: 768px) {
+            .step-connector::after {
+                display: none;
+            }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 201, 7, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(255, 201, 7, 0); }
+        }
+        .animate-pulse-gold {
+            animation: pulseGlow 2.2s infinite;
+        }
+        @keyframes slideInRow {
+            from { opacity: 0; transform: translateY(-10px); background-color: rgba(255, 201, 7, 0.25); }
+            to { opacity: 1; transform: translateY(0); background-color: transparent; }
+        }
+        .new-row-flash {
+            animation: slideInRow 1.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-gold selection:text-brand-navy">
+
+    <!-- 1. HEADER FIJO -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-header border-b border-slate-200/80 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 md:h-20">
+                <!-- Logo -->
+                <a href="#inicio" class="flex items-center gap-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-brand-navy flex items-center justify-center text-brand-gold shadow-md group-hover:scale-105 transition-transform">
+                        <i data-lucide="shield-check" class="w-6 h-6 stroke-[2.2]"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="font-display font-bold text-lg md:text-xl tracking-tight text-brand-navy leading-none">
+                            FraudShield
+                        </span>
+                        <span class="text-[11px] font-bold tracking-widest uppercase text-amber-600 mt-0.5">
+                            UNIMINUTO
+                        </span>
+                    </div>
+                </a>
+
+                <!-- Menú Desktop -->
+                <nav class="hidden lg:flex items-center gap-1 xl:gap-2">
+                    <a href="#inicio" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">Inicio</a>
+                    <a href="#problema" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">Problema</a>
+                    <a href="#kpis" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">KPIs</a>
+                    <a href="#variables" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">Variables</a>
+                    <a href="#estres" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">Pruebas de Estrés</a>
+                    <a href="#monitoreo" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">Monitoreo</a>
+                    <a href="#plan" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-brand-navy rounded-lg hover:bg-slate-100/80 transition">Plan</a>
+                </nav>
+
+                <!-- Botón CTA y Menú Móvil -->
+                <div class="flex items-center gap-3">
+                    <button onclick="triggerLiveDemo()" class="inline-flex items-center gap-2 bg-brand-navy hover:bg-brand-navyLight text-white font-semibold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm hover:shadow transition cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-brand-gold animate-ping"></span>
+                        <span>Ver Demo en Vivo</span>
+                    </button>
+                    <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100" aria-label="Abrir menú">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menú Desplegable Móvil -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-1 shadow-lg">
+            <a href="#inicio" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Inicio</a>
+            <a href="#problema" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Problema</a>
+            <a href="#kpis" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">KPIs</a>
+            <a href="#variables" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Variables</a>
+            <a href="#estres" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Pruebas de Estrés</a>
+            <a href="#monitoreo" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Monitoreo</a>
+            <a href="#plan" class="mobile-link block px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Plan</a>
+        </div>
+    </header>
+
+    <!-- 2. SECCIÓN HERO -->
+    <section id="inicio" class="hero-gradient pt-28 pb-16 md:pt-36 md:pb-24 border-b border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+                <!-- Columna Principal -->
+                <div class="lg:col-span-7 space-y-6">
+                    <!-- Badge Universidad y Programa -->
+                    <div class="inline-flex flex-wrap items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-navy/5 border border-brand-navy/15 text-brand-navy text-xs sm:text-sm font-medium">
+                        <span class="px-2 py-0.5 rounded-full bg-brand-gold text-brand-navy font-bold text-[11px]">UNIMINUTO 2026</span>
+                        <span>Corporación Universitaria Minuto de Dios · Ing. en Ciencia de Datos e IA</span>
+                    </div>
+
+                    <h1 class="font-display font-extrabold text-3xl sm:text-4xl lg:text-[44px] text-brand-navy tracking-tight leading-[1.15]">
+                        Detección de fraudes en pagos en línea mediante métodos precisos y seguros
+                    </h1>
+
+                    <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
+                        Los pagos en línea crecen, pero también el fraude. Nuestro sistema detecta lo sospechoso sin bloquear al usuario bueno.
+                    </p>
+
+                    <!-- Recuadro Objetivo General -->
+                    <div class="p-5 sm:p-6 rounded-2xl bg-slate-50 border-l-4 border-brand-gold shadow-sm">
+                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-brand-navy mb-1.5">
+                            <i data-lucide="target" class="w-4 h-4 text-amber-500"></i>
+                            <span>Objetivo General del Proyecto</span>
+                        </div>
+                        <p class="text-sm sm:text-base text-slate-700 font-medium leading-relaxed">
+                            Desarrollar un modelo de detección de fraude en pagos en línea que maximice la identificación de transacciones fraudulentas sin afectar significativamente la experiencia de los usuarios legítimos.
+                        </p>
+                    </div>
+
+                    <!-- Créditos Académicos -->
+                    <div class="pt-2 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 text-xs sm:text-sm text-slate-600 border-t border-slate-200/80">
+                        <div>
+                            <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Autoras</span>
+                            <span class="font-semibold text-brand-navy">Sara Sofia Saleme Yanez</span> &amp; <span class="font-semibold text-brand-navy">Mariana Sofia Criado Castillo</span>
+                        </div>
+                        <div class="hidden sm:block w-px h-8 bg-slate-200"></div>
+                        <div>
+                            <span class="block text-[11px] uppercase tracking-wider text-slate-400 font-semibold">Asesor</span>
+                            <span class="font-semibold text-brand-navy">Víctor Andrés Hernández Arias</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Mini-stats animadas + Tarjeta visual de Motor IA -->
+                <div class="lg:col-span-5">
+                    <div class="bg-brand-navy text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+                        <!-- Decoración de fondo -->
+                        <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-brand-gold/15 blur-2xl pointer-events-none"></div>
+                        <div class="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-brand-green/15 blur-2xl pointer-events-none"></div>
+
+                        <div class="flex items-center justify-between pb-5 border-b border-white/10">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-brand-gold">
+                                    <i data-lucide="cpu" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-300 font-medium">Motor Predictivo IA</p>
+                                    <p class="text-sm font-bold text-white">XGBoost + Scikit-Learn</p>
+                                </div>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-green/20 text-brand-green text-xs font-semibold">
+                                <span class="w-2 h-2 rounded-full bg-brand-green"></span>
+                                Activo
+                            </span>
+                        </div>
+
+                        <!-- 3 Mini-Stats Animadas -->
+                        <div class="mt-6 space-y-4">
+                            <!-- Stat 1 -->
+                            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:bg-white/10 transition">
+                                <div class="flex items-center gap-3.5">
+                                    <div class="w-11 h-11 rounded-xl bg-brand-green/20 text-brand-green flex items-center justify-center">
+                                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-300 font-medium">Precisión del Modelo</p>
+                                        <p class="text-[11px] text-slate-400">Identificación efectiva</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-display font-extrabold text-2xl sm:text-3xl text-brand-green hero-counter" data-target="94.2" data-decimals="1" data-suffix="%">0.0%</span>
+                                </div>
+                            </div>
+
+                            <!-- Stat 2 -->
+                            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:bg-white/10 transition">
+                                <div class="flex items-center gap-3.5">
+                                    <div class="w-11 h-11 rounded-xl bg-brand-gold/20 text-brand-gold flex items-center justify-center">
+                                        <i data-lucide="user-check" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-300 font-medium">Tasa de Falsos Positivos</p>
+                                        <p class="text-[11px] text-slate-400">Fricción mínima al cliente</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-display font-extrabold text-2xl sm:text-3xl text-brand-gold hero-counter" data-target="3.1" data-decimals="1" data-suffix="%">0.0%</span>
+                                </div>
+                            </div>
+
+                            <!-- Stat 3 -->
+                            <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between hover:bg-white/10 transition">
+                                <div class="flex items-center gap-3.5">
+                                    <div class="w-11 h-11 rounded-xl bg-sky-400/20 text-sky-300 flex items-center justify-center">
+                                        <i data-lucide="zap" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-slate-300 font-medium">Tiempo de Respuesta</p>
+                                        <p class="text-[11px] text-slate-400">Evaluación en tiempo real</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="font-display font-extrabold text-2xl sm:text-3xl text-white hero-counter" data-target="0.8" data-decimals="1" data-suffix="s">0.0s</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. SECCIÓN EL PROBLEMA -->
+    <section id="problema" class="py-16 md:py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center mb-12 md:mb-16">
+                <span class="inline-block px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wider mb-3">
+                    Contexto y Problemática
+                </span>
+                <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
+                    ¿Por qué los sistemas actuales no son suficientes?
+                </h2>
+                <p class="mt-3 text-slate-600 text-sm sm:text-base">
+                    El auge del comercio electrónico exige soluciones inteligentes capaces de equilibrar seguridad financiera y experiencia de usuario.
+                </p>
+            </div>
+
+            <!-- 3 Tarjetas de Problema -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                <!-- Tarjeta 1 -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-red-50 text-brand-red flex items-center justify-center mb-5">
+                        <i data-lucide="trending-down" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold text-brand-red uppercase tracking-wider mb-1">Impacto 01</div>
+                    <h3 class="font-display font-bold text-xl text-brand-navy mb-3">Pérdidas económicas</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        El incremento acelerado de transacciones digitales expone a comercios y entidades financieras a contracargos directos, robo de identidad y fraudes que afectan la rentabilidad operativa.
+                    </p>
+                </div>
+
+                <!-- Tarjeta 2 -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-5">
+                        <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">Impacto 02</div>
+                    <h3 class="font-display font-bold text-xl text-brand-navy mb-3">Pérdida de confianza del usuario</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Tanto sufrir un robo como experimentar bloqueos injustificados al pagar generan frustración, abandono del carrito de compra y deterioro en la reputación de la plataforma.
+                    </p>
+                </div>
+
+                <!-- Tarjeta 3 -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition-all">
+                    <div class="w-12 h-12 rounded-2xl bg-brand-navy/10 text-brand-navy flex items-center justify-center mb-5">
+                        <i data-lucide="sliders-horizontal" class="w-6 h-6"></i>
+                    </div>
+                    <div class="text-xs font-bold text-brand-navy uppercase tracking-wider mb-1">Impacto 03</div>
+                    <h3 class="font-display font-bold text-xl text-brand-navy mb-3">Falla de métodos tradicionales</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">
+                        Los sistemas basados en reglas estáticas no detectan nuevos patrones de fraude y generan demasiados falsos positivos al bloquear compras legítimas fuera de lo habitual.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Recuadro Destacado: Pregunta de Investigación -->
+            <div class="mt-10 sm:mt-12 bg-white rounded-3xl p-6 sm:p-8 lg:p-10 border-2 border-brand-gold shadow-fintech relative overflow-hidden">
+                <div class="flex flex-col md:flex-row items-start md:items-center gap-5 sm:gap-6">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-gold text-brand-navy flex items-center justify-center shrink-0 shadow-sm">
+                        <i data-lucide="help-circle" class="w-8 h-8 stroke-[2.2]"></i>
+                    </div>
+                    <div>
+                        <span class="inline-block px-2.5 py-0.5 rounded-md bg-brand-navy text-brand-gold text-xs font-bold uppercase tracking-wider mb-2">
+                            Pregunta de Investigación
+                        </span>
+                        <p class="font-display font-bold text-lg sm:text-xl lg:text-2xl text-brand-navy leading-snug">
+                            “¿Cuáles son los mejores métodos para detectar fraudes en pagos en línea, identificando la mayoría de fraudes y minimizando errores en transacciones legítimas?”
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. KPIs PRINCIPALES -->
+    <section id="kpis" class="py-16 md:py-24 bg-white border-y border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-brand-navy/10 text-brand-navy text-xs font-bold uppercase tracking-wider mb-3">
+                        Métricas de Desempeño
+                    </span>
+                    <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
+                        Resultados Clave del Modelo
+                    </h2>
+                </div>
+                <p class="text-sm text-slate-500 max-w-md">
+                    Evaluación integral sobre lote de validación balanceado y pruebas de comportamiento transaccional.
+                </p>
+            </div>
+
+            <!-- Grid de 6 Tarjetas Grandes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="kpi-grid">
+                <!-- KPI 1 -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-brand-navy text-white flex items-center justify-center">
+                            <i data-lucide="layers" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-200/70 text-slate-700">Volumen Total</span>
+                    </div>
+                    <div class="font-display font-extrabold text-3xl sm:text-4xl text-brand-navy kpi-counter" data-target="12480" data-format="thousands">0</div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-600">Transacciones analizadas</p>
+                </div>
+
+                <!-- KPI 2 -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-brand-green/15 text-brand-green flex items-center justify-center">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-green-100 text-green-700">Verdaderos Positivos</span>
+                    </div>
+                    <div class="font-display font-extrabold text-3xl sm:text-4xl text-brand-green kpi-counter" data-target="312" data-format="int">0</div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-600">Fraudes detectados correctamente</p>
+                </div>
+
+                <!-- KPI 3 -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-brand-red/15 text-brand-red flex items-center justify-center">
+                            <i data-lucide="alert-octagon" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-100 text-red-700">Falsos Negativos</span>
+                    </div>
+                    <div class="font-display font-extrabold text-3xl sm:text-4xl text-brand-red kpi-counter" data-target="18" data-format="int">0</div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-600">Fraudes no detectados</p>
+                </div>
+
+                <!-- KPI 4 -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-brand-gold/25 text-amber-700 flex items-center justify-center">
+                            <i data-lucide="user-x" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800">Falsos Positivos</span>
+                    </div>
+                    <div class="font-display font-extrabold text-3xl sm:text-4xl text-amber-600 kpi-counter" data-target="96" data-format="int">0</div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-600">Legítimas marcadas por error</p>
+                </div>
+
+                <!-- KPI 5 -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-brand-navy text-white shadow-fintech hover:shadow-fintech-hover transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-brand-gold text-brand-navy flex items-center justify-center">
+                            <i data-lucide="award" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/15 text-brand-gold">Accuracy</span>
+                    </div>
+                    <div class="font-display font-extrabold text-3xl sm:text-4xl text-white kpi-counter" data-target="94.2" data-format="decimal" data-suffix="%">0.0%</div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-300">Precisión general del sistema</p>
+                </div>
+
+                <!-- KPI 6 -->
+                <div class="p-6 sm:p-7 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-fintech hover:shadow-fintech-hover transition">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
+                            <i data-lucide="gauge" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sky-100 text-sky-700">Latencia Baja</span>
+                    </div>
+                    <div class="font-display font-extrabold text-3xl sm:text-4xl text-brand-navy kpi-counter" data-target="0.8" data-format="decimal" data-suffix="s">0.0s</div>
+                    <p class="mt-1.5 text-sm font-medium text-slate-600">Tiempo de respuesta promedio</p>
+                </div>
+            </div>
+
+            <p class="mt-6 text-center text-xs text-slate-400 italic">
+                * Datos simulados para demostración del prototipo
+            </p>
+        </div>
+    </section>
+
+    <!-- 5. ANÁLISIS DE VARIABLES -->
+    <section id="variables" class="py-16 md:py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mb-12">
+                <span class="inline-block px-3 py-1 rounded-full bg-brand-navy/10 text-brand-navy text-xs font-bold uppercase tracking-wider mb-3">
+                    Ingeniería de Características (Feature Importance)
+                </span>
+                <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
+                    ¿Qué señales analiza nuestra Inteligencia Artificial?
+                </h2>
+                <p class="mt-3 text-slate-600 text-sm sm:text-base">
+                    El modelo evalúa múltiples dimensiones contextuales en milisegundos para distinguir comportamientos habituales de anomalías sospechosas.
+                </p>
+            </div>
+
+            <!-- Gráficos Chart.js -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Gráfico 1: Barras Horizontales -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="font-display font-bold text-lg sm:text-xl text-brand-navy">Importancia de Variables</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Peso relativo en la decisión del algoritmo XGBoost</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-brand-navy/5 text-brand-navy flex items-center justify-center">
+                            <i data-lucide="bar-chart-horizontal" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="variablesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Gráfico 2: Línea Temporal -->
+                <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 class="font-display font-bold text-lg sm:text-xl text-brand-navy">Fraudes por Hora del Día</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Distribución horaria (00:00 - 23:00) · Pico crítico en madrugada</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-red-50 text-brand-red flex items-center justify-center">
+                            <i data-lucide="activity" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="hourlyFraudChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Ejemplo Visual estilo Alerta Fintech -->
+            <div class="mt-8 bg-white rounded-3xl p-6 sm:p-8 border border-red-200 shadow-fintech">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div class="space-y-3 max-w-3xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-100 text-brand-red text-xs font-bold uppercase tracking-wider">
+                            <span class="w-2 h-2 rounded-full bg-brand-red animate-ping"></span>
+                            Caso Práctico · Escenario de Detección
+                        </div>
+                        <h4 class="font-display font-bold text-lg sm:text-xl text-brand-navy">
+                            “Usuario habitual en Bogotá compra de repente desde otro país + dispositivo nuevo + monto alto = Alerta Roja”
+                        </h4>
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">
+                                <i data-lucide="map-pin-off" class="w-3.5 h-3.5 text-brand-red"></i>
+                                Geolocalización: Bogotá → Madrid (+18% riesgo)
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">
+                                <i data-lucide="smartphone" class="w-3.5 h-3.5 text-brand-red"></i>
+                                Dispositivo no reconocido (+15% riesgo)
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">
+                                <i data-lucide="dollar-sign" class="w-3.5 h-3.5 text-brand-red"></i>
+                                Monto 4.5x mayor al promedio (+32% riesgo)
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 bg-red-50 border border-red-200 rounded-2xl p-4 sm:p-5 shrink-0">
+                        <div class="w-12 h-12 rounded-xl bg-brand-red text-white flex items-center justify-center shadow-sm">
+                            <i data-lucide="siren" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-red-800 uppercase">Score de Riesgo: 94/100</div>
+                            <div class="font-display font-extrabold text-lg text-brand-red">ALERTA ROJA</div>
+                            <div class="text-xs text-red-700">Bloqueo preventivo + verificación 2FA</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. PRUEBAS DE ESTRÉS - NUESTRO DIFERENCIAL -->
+    <section id="estres" class="py-16 md:py-24 bg-white border-y border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center mb-12 md:mb-16">
+                <span class="inline-block px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
+                    Nuestro Diferencial Tecnológico
+                </span>
+                <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
+                    Pruebas de Estrés y Robustez del Modelo
+                </h2>
+                <p class="mt-3 text-slate-600 text-sm sm:text-base">
+                    Sometimos nuestro prototipo a escenarios adversos extremos para garantizar estabilidad, adaptabilidad y alta disponibilidad.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8" id="stress-container">
+                <!-- Prueba 1 -->
+                <div class="p-6 sm:p-8 rounded-3xl bg-slate-50 border border-slate-200/80 shadow-fintech flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <span class="px-3 py-1 rounded-lg bg-brand-navy text-white text-xs font-bold">Prueba 01</span>
+                            <div class="w-10 h-10 rounded-xl bg-brand-navy/10 text-brand-navy flex items-center justify-center">
+                                <i data-lucide="shuffle" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-display font-bold text-xl text-brand-navy mb-2">Datos manipulados</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                            Simulación de evasión mediante cambio simultáneo de ubicación (VPN/Proxy), huella de dispositivo y montos atípicos.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm font-bold mb-2">
+                            <span class="text-slate-600">Resistencia del modelo</span>
+                            <span class="text-brand-navy font-display text-lg">92%</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-brand-navy rounded-full stress-bar transition-all duration-1000 ease-out" style="width: 0%" data-width="92%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prueba 2 -->
+                <div class="p-6 sm:p-8 rounded-3xl bg-slate-50 border border-slate-200/80 shadow-fintech flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <span class="px-3 py-1 rounded-lg bg-brand-gold text-brand-navy text-xs font-bold">Prueba 02</span>
+                            <div class="w-10 h-10 rounded-xl bg-brand-gold/25 text-amber-700 flex items-center justify-center">
+                                <i data-lucide="repeat" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-display font-bold text-xl text-brand-navy mb-2">Nuevos patrones de fraude</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                            Detección de ataques tipo <em>card testing</em> o “pitufeo”: múltiples compras pequeñas seguidas en intervalos de segundos.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm font-bold mb-2">
+                            <span class="text-slate-600">Resistencia del modelo</span>
+                            <span class="text-amber-600 font-display text-lg">88%</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-brand-gold rounded-full stress-bar transition-all duration-1000 ease-out" style="width: 0%" data-width="88%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prueba 3 -->
+                <div class="p-6 sm:p-8 rounded-3xl bg-slate-50 border border-slate-200/80 shadow-fintech flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-5">
+                            <span class="px-3 py-1 rounded-lg bg-brand-green text-white text-xs font-bold">Prueba 03</span>
+                            <div class="w-10 h-10 rounded-xl bg-brand-green/15 text-brand-green flex items-center justify-center">
+                                <i data-lucide="server" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <h3 class="font-display font-bold text-xl text-brand-navy mb-2">Alta concurrencia</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed mb-6">
+                            Evaluación de picos de tráfico con miles de transacciones simultáneas manteniendo latencia inferior a 1 segundo.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="flex items-center justify-between text-sm font-bold mb-2">
+                            <span class="text-slate-600">Resistencia del modelo</span>
+                            <span class="text-brand-green font-display text-lg">95%</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            <div class="h-full bg-brand-green rounded-full stress-bar transition-all duration-1000 ease-out" style="width: 0%" data-width="95%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. MONITOREO EN TIEMPO REAL -->
+    <section id="monitoreo" class="py-16 md:py-24 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 rounded-full bg-brand-green/15 text-green-800 text-xs font-bold uppercase tracking-wider mb-3">
+                        Arquitectura &amp; Operación en Vivo
+                    </span>
+                    <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
+                        Monitoreo en Tiempo Real
+                    </h2>
+                </div>
+                <button onclick="simulateNewTransaction()" class="inline-flex items-center gap-2 bg-brand-gold hover:bg-brand-goldHover text-brand-navy font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition cursor-pointer animate-pulse-gold self-start md:self-auto">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                    <span>Simular Nueva Transacción</span>
+                </button>
+            </div>
+
+            <!-- Flujo de 5 Pasos Conectados -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech mb-8">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-6 text-center md:text-left">
+                    Pipeline de Procesamiento de Pagos (&lt; 0.8s)
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6 relative" id="pipeline-steps">
+                    <!-- Paso 1 -->
+                    <div class="relative step-connector active flex flex-col items-center text-center z-10 pipeline-step" data-step="1">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-md mb-3 transition-transform duration-300 step-icon">
+                            <i data-lucide="arrow-down-to-line" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-amber-600 uppercase">Paso 1</span>
+                        <h4 class="font-display font-bold text-sm text-brand-navy">Recepción</h4>
+                        <p class="text-xs text-slate-500 mt-1">Captura segura vía API del pago</p>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div class="relative step-connector active flex flex-col items-center text-center z-10 pipeline-step" data-step="2">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-md mb-3 transition-transform duration-300 step-icon">
+                            <i data-lucide="search-check" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-amber-600 uppercase">Paso 2</span>
+                        <h4 class="font-display font-bold text-sm text-brand-navy">Análisis</h4>
+                        <p class="text-xs text-slate-500 mt-1">Extracción de IP, monto e historial</p>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div class="relative step-connector active flex flex-col items-center text-center z-10 pipeline-step" data-step="3">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-gold text-brand-navy flex items-center justify-center shadow-md mb-3 transition-transform duration-300 step-icon">
+                            <i data-lucide="brain-circuit" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-amber-600 uppercase">Paso 3</span>
+                        <h4 class="font-display font-bold text-sm text-brand-navy">Clasificación con IA</h4>
+                        <p class="text-xs text-slate-600 font-medium mt-1">Python, Scikit-learn, XGBoost</p>
+                    </div>
+
+                    <!-- Paso 4 -->
+                    <div class="relative step-connector active flex flex-col items-center text-center z-10 pipeline-step" data-step="4">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-navy text-white flex items-center justify-center shadow-md mb-3 transition-transform duration-300 step-icon">
+                            <i data-lucide="bell-ring" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-amber-600 uppercase">Paso 4</span>
+                        <h4 class="font-display font-bold text-sm text-brand-navy">Alerta</h4>
+                        <p class="text-xs text-slate-500 mt-1">Cálculo de Score de riesgo</p>
+                    </div>
+
+                    <!-- Paso 5 -->
+                    <div class="relative flex flex-col items-center text-center z-10 pipeline-step" data-step="5">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-green text-white flex items-center justify-center shadow-md mb-3 transition-transform duration-300 step-icon">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-[11px] font-bold text-amber-600 uppercase">Paso 5</span>
+                        <h4 class="font-display font-bold text-sm text-brand-navy">Respuesta</h4>
+                        <p class="text-xs text-slate-500 mt-1">Aprobación, revisión o bloqueo</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Tabla Interactiva -->
+            <div class="bg-white rounded-3xl border border-slate-200/80 shadow-fintech overflow-hidden">
+                <!-- Barra de Herramientas: Buscador + Filtros -->
+                <div class="p-5 sm:p-6 border-b border-slate-200/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-slate-50/50">
+                    <!-- Buscador -->
+                    <div class="relative flex-1 max-w-md">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar por ID, ubicación o dispositivo..." 
+                               class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy transition">
+                    </div>
+
+                    <!-- Filtros por Estado -->
+                    <div class="flex flex-wrap items-center gap-2" id="statusFilters">
+                        <button data-filter="Todos" class="filter-btn active px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-navy text-white transition cursor-pointer">
+                            Todos (<span id="count-all">10</span>)
+                        </button>
+                        <button data-filter="Legítima" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-brand-green"></span>
+                            Legítima
+                        </button>
+                        <button data-filter="Sospechosa" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-brand-red"></span>
+                            Sospechosa
+                        </button>
+                        <button data-filter="En revisión" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-brand-gold"></span>
+                            En revisión
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabla Responsive -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                                <th class="py-3.5 px-5">ID Transacción</th>
+                                <th class="py-3.5 px-5">Monto (COP)</th>
+                                <th class="py-3.5 px-5">Ubicación</th>
+                                <th class="py-3.5 px-5">Dispositivo</th>
+                                <th class="py-3.5 px-5">Hora</th>
+                                <th class="py-3.5 px-5">Estado</th>
+                                <th class="py-3.5 px-5 text-right">Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionsTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Filas inyectadas por JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pie de tabla -->
+                <div class="px-6 py-3.5 bg-slate-50/70 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-500">
+                    <span>Haz clic en cualquier fila para inspeccionar el score de riesgo de la IA.</span>
+                    <span id="tableResultCount" class="font-semibold text-brand-navy">Mostrando 10 transacciones</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 8. PLAN DEL PROYECTO Y PRESUPUESTO -->
+    <section id="plan" class="py-16 md:py-24 bg-white border-t border-slate-200/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mb-12">
+                <span class="inline-block px-3 py-1 rounded-full bg-brand-navy/10 text-brand-navy text-xs font-bold uppercase tracking-wider mb-3">
+                    Gestión y Viabilidad
+                </span>
+                <h2 class="font-display font-bold text-2xl sm:text-3xl lg:text-4xl text-brand-navy">
+                    Plan del Proyecto y Presupuesto
+                </h2>
+                <p class="mt-3 text-slate-600 text-sm sm:text-base">
+                    Cronograma ágil estructurado en 7 semanas y optimización financiera mediante tecnologías Open Source.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- Columna Izquierda: Línea de Tiempo de 7 Semanas (7 cols) -->
+                <div class="lg:col-span-7 bg-slate-50 rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-fintech">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-display font-bold text-xl text-brand-navy">Línea de Tiempo (7 Semanas)</h3>
+                        <span class="px-3 py-1 rounded-full bg-brand-navy text-white text-xs font-bold">3 Fases</span>
+                    </div>
+
+                    <!-- Barra visual de semanas -->
+                    <div class="grid grid-cols-7 gap-1.5 mb-8 text-center">
+                        <div class="py-1.5 rounded-lg bg-brand-navy text-white text-xs font-bold">S1</div>
+                        <div class="py-1.5 rounded-lg bg-brand-navy text-white text-xs font-bold">S2</div>
+                        <div class="py-1.5 rounded-lg bg-brand-navy text-white text-xs font-bold">S3</div>
+                        <div class="py-1.5 rounded-lg bg-brand-gold text-brand-navy text-xs font-bold">S4</div>
+                        <div class="py-1.5 rounded-lg bg-gradient-to-r from-brand-gold to-brand-green text-brand-navy text-xs font-bold">S5</div>
+                        <div class="py-1.5 rounded-lg bg-brand-green text-white text-xs font-bold">S6</div>
+                        <div class="py-1.5 rounded-lg bg-brand-green text-white text-xs font-bold">S7</div>
+                    </div>
+
+                    <!-- Detalle de Fases -->
+                    <div class="space-y-5 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+                        <!-- Fase 1 -->
+                        <div class="relative pl-14">
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-xl bg-brand-navy text-white font-display font-bold text-sm flex items-center justify-center shadow-sm">
+                                F1
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                    <h4 class="font-display font-bold text-base text-brand-navy">Fase 1: Análisis</h4>
+                                    <span class="px-2.5 py-0.5 rounded-md bg-brand-navy/10 text-brand-navy text-xs font-bold">Semanas 1 – 3</span>
+                                </div>
+                                <p class="text-sm text-slate-600">
+                                    Recolección y limpieza de datos transaccionales, análisis exploratorio (EDA), identificación de variables críticas y definición de métricas.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Fase 2 -->
+                        <div class="relative pl-14">
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-xl bg-brand-gold text-brand-navy font-display font-bold text-sm flex items-center justify-center shadow-sm">
+                                F2
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                    <h4 class="font-display font-bold text-base text-brand-navy">Fase 2: Diseño y pruebas</h4>
+                                    <span class="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-xs font-bold">Semanas 4 – 5</span>
+                                </div>
+                                <p class="text-sm text-slate-600">
+                                    Entrenamiento de modelos de Machine Learning (XGBoost y Scikit-learn), ajuste de hiperparámetros y ejecución de pruebas de estrés.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Fase 3 -->
+                        <div class="relative pl-14">
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-xl bg-brand-green text-white font-display font-bold text-sm flex items-center justify-center shadow-sm">
+                                F3
+                            </div>
+                            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                                <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                    <h4 class="font-display font-bold text-base text-brand-navy">Fase 3: Monitoreo y evaluación</h4>
+                                    <span class="px-2.5 py-0.5 rounded-md bg-green-100 text-green-800 text-xs font-bold">Semanas 5 – 7</span>
+                                </div>
+                                <p class="text-sm text-slate-600">
+                                    Despliegue del dashboard de monitoreo en tiempo real, validación de precisión/falsos positivos y documentación final del proyecto.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Tarjeta de Costos (5 cols) -->
+                <div class="lg:col-span-5 bg-brand-navy text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-brand-gold/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                    <div class="flex items-center justify-between pb-5 border-b border-white/10">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-brand-gold">Presupuesto del Prototipo</span>
+                            <h3 class="font-display font-bold text-xl mt-0.5">Desglose de Costos</h3>
+                        </div>
+                        <div class="w-11 h-11 rounded-2xl bg-white/10 flex items-center justify-center text-brand-gold">
+                            <i data-lucide="wallet" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Rubros -->
+                    <div class="mt-5 space-y-3 text-sm">
+                        <div class="flex items-center justify-between py-2 border-b border-white/10">
+                            <span class="text-slate-300 flex items-center gap-2">
+                                <i data-lucide="cpu" class="w-4 h-4 text-brand-gold"></i> Procesamiento
+                            </span>
+                            <span class="font-semibold text-white">$100.000 COP</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-white/10">
+                            <span class="text-slate-300 flex items-center gap-2">
+                                <i data-lucide="wifi" class="w-4 h-4 text-brand-gold"></i> Internet
+                            </span>
+                            <span class="font-semibold text-white">$60.000 COP</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-white/10">
+                            <span class="text-slate-300 flex items-center gap-2">
+                                <i data-lucide="printer" class="w-4 h-4 text-brand-gold"></i> Impresiones
+                            </span>
+                            <span class="font-semibold text-white">$40.000 COP</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-white/10">
+                            <span class="text-slate-300 flex items-center gap-2">
+                                <i data-lucide="bus" class="w-4 h-4 text-brand-gold"></i> Transporte
+                            </span>
+                            <span class="font-semibold text-white">$40.000 COP</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2 border-b border-white/10">
+                            <span class="text-slate-300 flex items-center gap-2">
+                                <i data-lucide="database" class="w-4 h-4 text-brand-gold"></i> Almacenamiento
+                            </span>
+                            <span class="font-semibold text-white">$30.000 COP</span>
+                        </div>
+                        <div class="flex items-center justify-between py-2">
+                            <span class="text-slate-300 flex items-center gap-2">
+                                <i data-lucide="shield" class="w-4 h-4 text-brand-gold"></i> Imprevistos
+                            </span>
+                            <span class="font-semibold text-white">$30.000 COP</span>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="mt-6 p-4 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-between">
+                        <span class="font-bold text-sm uppercase tracking-wider text-slate-200">Inversión Total</span>
+                        <span class="font-display font-extrabold text-2xl sm:text-3xl text-brand-gold">$300.000 COP</span>
+                    </div>
+
+                    <!-- Nota Herramientas Gratuitas -->
+                    <div class="mt-5 p-4 rounded-2xl bg-brand-green/15 border border-brand-green/30 flex items-start gap-3">
+                        <i data-lucide="sparkles" class="w-5 h-5 text-brand-green shrink-0 mt-0.5"></i>
+                        <div class="text-xs leading-relaxed text-slate-200">
+                            <span class="font-bold text-brand-green block mb-0.5">Costo de Licencias: $0 COP</span>
+                            Herramientas gratuitas: <strong class="text-white">Python, Scikit-learn, XGBoost</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9. FOOTER -->
+    <footer class="bg-brand-navyDark text-slate-300 py-10 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-gold text-brand-navy flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <span class="font-display font-bold text-white tracking-tight">FraudShield UNIMINUTO</span>
+            </div>
+            <p class="text-xs sm:text-sm font-medium text-slate-300">
+                Proyecto UNIMINUTO 2026 - Sara Saleme / Mariana Criado - Asesor: Víctor Andrés Hernández Arias
+            </p>
+        </div>
+    </footer>
+
+    <!-- MODAL DE DETALLE DE TRANSACCIÓN -->
+    <div id="txModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 relative transform transition-all">
+            <button onclick="closeTxModal()" class="absolute top-5 right-5 w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition cursor-pointer">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center gap-3 mb-4">
+                <div id="modalIconBox" class="w-12 h-12 rounded-2xl flex items-center justify-center">
+                    <i data-lucide="shield" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <span id="modalTxId" class="text-xs font-bold uppercase tracking-wider text-slate-400">TX-0000</span>
+                    <h3 class="font-display font-bold text-xl text-brand-navy">Análisis de Riesgo IA</h3>
+                </div>
+            </div>
+
+            <div id="modalBadgeContainer" class="mb-5"></div>
+
+            <!-- Barra de Score -->
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-5">
+                <div class="flex items-center justify-between text-xs font-bold mb-2">
+                    <span class="text-slate-600 uppercase">Probabilidad de Fraude (XGBoost)</span>
+                    <span id="modalScoreText" class="text-base font-display text-brand-navy">0%</span>
+                </div>
+                <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="modalScoreBar" class="h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Detalles -->
+            <div class="grid grid-cols-2 gap-3 text-sm mb-5">
+                <div class="p-3 rounded-xl bg-slate-50">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase">Monto</span>
+                    <span id="modalAmount" class="font-bold text-brand-navy">$0</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase">Hora</span>
+                    <span id="modalTime" class="font-bold text-brand-navy">00:00</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase">Ubicación</span>
+                    <span id="modalLocation" class="font-bold text-brand-navy">-</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-50">
+                    <span class="block text-[11px] text-slate-400 font-semibold uppercase">Dispositivo</span>
+                    <span id="modalDevice" class="font-bold text-brand-navy">-</span>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-brand-navy/5 border border-brand-navy/10 text-xs text-slate-700 leading-relaxed" id="modalReason">
+                Explicación del modelo...
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS DE INTERACTIVIDAD Y GRÁFICOS -->
+    <script>
+        // Inicializar iconos Lucide
+        lucide.createIcons();
+
+        // Menú móvil toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        document.querySelectorAll('.mobile-link').forEach(link => {
+            link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+        });
+
+        // 1. ANIMACIÓN DE CONTADORES (HERO & KPIs)
+        function animateCounter(el) {
+            const target = parseFloat(el.getAttribute('data-target'));
+            const decimals = parseInt(el.getAttribute('data-decimals') || (el.getAttribute('data-format') === 'decimal' ? 1 : 0));
+            const suffix = el.getAttribute('data-suffix') || '';
+            const format = el.getAttribute('data-format') || '';
+            const duration = 1600;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out quart
+                const ease = 1 - Math.pow(1 - progress, 4);
+                const currentVal = target * ease;
+
+                let formatted;
+                if (format === 'thousands') {
+                    formatted = Math.round(currentVal).toLocaleString('es-CO');
+                } else if (decimals > 0) {
+                    formatted = currentVal.toFixed(decimals);
+                } else {
+                    formatted = Math.round(currentVal).toString();
+                }
+                el.textContent = formatted + suffix;
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            requestAnimationFrame(update);
+        }
+
+        // Ejecutar contadores del Hero inmediatamente
+        document.querySelectorAll('.hero-counter').forEach(animateCounter);
+
+        // IntersectionObserver para KPIs y Barras de Estrés
+        const observerOptions = { threshold: 0.2 };
+        let kpisAnimated = false;
+        let stressAnimated = false;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.id === 'kpi-grid' && !kpisAnimated) {
+                        kpisAnimated = true;
+                        document.querySelectorAll('.kpi-counter').forEach(animateCounter);
+                    }
+                    if (entry.target.id === 'stress-container' && !stressAnimated) {
+                        stressAnimated = true;
+                        document.querySelectorAll('.stress-bar').forEach(bar => {
+                            bar.style.width = bar.getAttribute('data-width');
+                        });
+                    }
+                }
+            });
+        }, observerOptions);
+
+        observer.observe(document.getElementById('kpi-grid'));
+        observer.observe(document.getElementById('stress-container'));
+
+        // 2. GRÁFICOS CON CHART.JS
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#475569';
+
+        // Gráfico 1: Barras Horizontales - Importancia de Variables
+        const ctxVar = document.getElementById('variablesChart').getContext('2d');
+        new Chart(ctxVar, {
+            type: 'bar',
+            data: {
+                labels: ['Monto de transacción', 'Historial del usuario', 'Ubicación geográfica', 'Dispositivo / Huella', 'Hora y Fecha'],
+                datasets: [{
+                    label: 'Importancia (%)',
+                    data: [32, 25, 18, 15, 10],
+                    backgroundColor: [
+                        '#0B2C4A',
+                        '#164672',
+                        '#FFC907',
+                        '#22C55E',
+                        '#64748B'
+                    ],
+                    borderRadius: 8,
+                    barThickness: 26
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0B2C4A',
+                        titleFont: { family: 'Poppins', size: 13 },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            label: (ctx) => ` Peso predictivo: ${ctx.parsed.x}%`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 40,
+                        grid: { color: '#F1F5F9' },
+                        ticks: { callback: (val) => val + '%' }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { font: { weight: '600', size: 12 }, color: '#0F172A' }
+                    }
+                }
+            }
+        });
+
+        // Gráfico 2: Línea - Fraudes por hora del día (Pico en madrugada)
+        const ctxHourly = document.getElementById('hourlyFraudChart').getContext('2d');
+        const gradientHourly = ctxHourly.createLinearGradient(0, 0, 0, 280);
+        gradientHourly.addColorStop(0, 'rgba(239, 68, 68, 0.28)');
+        gradientHourly.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+
+        new Chart(ctxHourly, {
+            type: 'line',
+            data: {
+                labels: ['00h', '02h', '04h', '06h', '08h', '10h', '12h', '14h', '16h', '18h', '20h', '22h'],
+                datasets: [{
+                    label: 'Intentos de Fraude Detectados',
+                    data: [38, 64, 58, 22, 11, 9, 14, 16, 13, 19, 24, 31],
+                    borderColor: '#EF4444',
+                    backgroundColor: gradientHourly,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: '#EF4444',
+                    pointBorderWidth: 2.5,
+                    pointRadius: 4,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0B2C4A',
+                        titleFont: { family: 'Poppins', size: 13 },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        cornerRadius: 10,
+                        callbacks: {
+                            title: (items) => `Franja horaria: ${items[0].label}`,
+                            label: (ctx) => ` ${ctx.parsed.y} intentos sospechosos detectados`
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11, weight: '600' } }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#F1F5F9' },
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+
+        // 3. DATOS Y TABLA DE MONITOREO EN TIEMPO REAL
+        let transactions = [
+            { id: 'TX-8942', amount: '$145.000', location: 'Bogotá, CO', device: 'iPhone 15 · App', time: '14:22:10', status: 'Legítima', score: 8, reason: 'Dispositivo habitual, ubicación consistente con historial y monto dentro del rango promedio del usuario.' },
+            { id: 'TX-8941', amount: '$4.850.000', location: 'Madrid, ES', device: 'Windows · Chrome', time: '02:41:05', status: 'Sospechosa', score: 94, reason: 'Alerta Roja: Cambio abrupto de país (Bogotá → Madrid), horario de madrugada, dispositivo nuevo y monto 4.5x superior.' },
+            { id: 'TX-8940', amount: '$890.000', location: 'Medellín, CO', device: 'Samsung S24 · Web', time: '13:58:44', status: 'En revisión', score: 61, reason: 'Monto moderadamente alto desde ciudad secundaria. Se solicita validación adicional OTP al titular.' },
+            { id: 'TX-8939', amount: '$62.500', location: 'Cali, CO', device: 'Android · App', time: '13:45:19', status: 'Legítima', score: 12, reason: 'Compra recurrente en comercio verificado y huella digital coincidente.' },
+            { id: 'TX-8938', amount: '$3.200.000', location: 'Miami, US', device: 'Linux · Firefox (VPN)', time: '03:12:50', status: 'Sospechosa', score: 91, reason: 'Uso de nodo VPN detectado en horario atípico (03:12 AM) con intento de compra de alto valor.' },
+            { id: 'TX-8937', amount: '$210.000', location: 'Barranquilla, CO', device: 'iPhone 13 · Safari', time: '12:30:02', status: 'Legítima', score: 15, reason: 'Comportamiento transaccional normal y validación biométrica exitosa.' },
+            { id: 'TX-8936', amount: '$1.450.000', location: 'Bucaramanga, CO', device: 'MacBook Pro · Chrome', time: '11:50:33', status: 'En revisión', score: 57, reason: 'Primer pago desde navegador de escritorio para este comercio; en espera de confirmación.' },
+            { id: 'TX-8935', amount: '$12.000', location: 'Bogotá, CO', device: 'Emulador Android', time: '01:55:14', status: 'Sospechosa', score: 89, reason: 'Patrón de Card Testing detectado: 6 micro-transacciones consecutivas en menos de 40 segundos.' },
+            { id: 'TX-8934', amount: '$340.000', location: 'Cartagena, CO', device: 'iPhone 14 · App', time: '11:12:08', status: 'Legítima', score: 19, reason: 'Transacción aprobada sin fricción; historial crediticio interno confiable.' },
+            { id: 'TX-8933', amount: '$78.000', location: 'Pereira, CO', device: 'Xiaomi · Chrome', time: '10:40:51', status: 'Legítima', score: 9, reason: 'Operación cotidiana verificada con bajo índice de anomalía.' }
+        ];
+
+        let currentFilter = 'Todos';
+        let currentSearch = '';
+
+        function getStatusBadge(status) {
+            if (status === 'Legítima') {
+                return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                            <span class="w-2 h-2 rounded-full bg-brand-green"></span>Legítima
+                        </span>`;
+            } else if (status === 'Sospechosa') {
+                return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                            <span class="w-2 h-2 rounded-full bg-brand-red"></span>Sospechosa
+                        </span>`;
+            } else {
+                return `<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                            <span class="w-2 h-2 rounded-full bg-brand-gold"></span>En revisión
+                        </span>`;
+            }
+        }
+
+        function renderTable(highlightFirst = false) {
+            const tbody = document.getElementById('transactionsTableBody');
+            document.getElementById('count-all').textContent = transactions.length;
+
+            const filtered = transactions.filter(tx => {
+                const matchesStatus = currentFilter === 'Todos' || tx.status === currentFilter;
+                const q = currentSearch.toLowerCase();
+                const matchesQuery = tx.id.toLowerCase().includes(q) ||
+                                     tx.location.toLowerCase().includes(q) ||
+                                     tx.device.toLowerCase().includes(q) ||
+                                     tx.amount.toLowerCase().includes(q);
+                return matchesStatus && matchesQuery;
+            });
+
+            document.getElementById('tableResultCount').textContent = `Mostrando ${filtered.length} de ${transactions.length} transacciones`;
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-10 text-center text-slate-400 text-sm">
+                            No se encontraron transacciones que coincidan con los filtros aplicados.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((tx, idx) => `
+                <tr onclick="openTxModal('${tx.id}')" class="hover:bg-slate-50/90 transition cursor-pointer group ${highlightFirst && idx === 0 ? 'new-row-flash' : ''}">
+                    <td class="py-4 px-5 font-display font-bold text-brand-navy">${tx.id}</td>
+                    <td class="py-4 px-5 font-semibold text-slate-800">${tx.amount}</td>
+                    <td class="py-4 px-5 text-slate-600">${tx.location}</td>
+                    <td class="py-4 px-5 text-slate-600">${tx.device}</td>
+                    <td class="py-4 px-5 text-slate-500 font-mono text-xs">${tx.time}</td>
+                    <td class="py-4 px-5">${getStatusBadge(tx.status)}</td>
+                    <td class="py-4 px-5 text-right">
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-brand-navy group-hover:underline">
+                            Ver score <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Buscador y Filtros
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            renderTable();
+        });
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => {
+                    b.classList.remove('bg-brand-navy', 'text-white', 'font-bold');
+                    b.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-600', 'font-semibold');
+                });
+                btn.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-600', 'font-semibold');
+                btn.classList.add('bg-brand-navy', 'text-white', 'font-bold');
+
+                currentFilter = btn.getAttribute('data-filter');
+                renderTable();
+            });
+        });
+
+        // Simular nueva transacción en vivo
+        const demoScenarios = [
+            { amount: '$5.400.000', location: 'Londres, UK', device: 'Unknown · Tor Browser', status: 'Sospechosa', score: 96, reason: 'Alerta Crítica: Conexión anónima internacional + monto atípico + dispositivo sin historial previo.' },
+            { amount: '$185.000', location: 'Bogotá, CO', device: 'iPhone 15 · App', status: 'Legítima', score: 7, reason: 'Patrón habitual de compra verificado en 0.6s. Sin fricción para el usuario.' },
+            { amount: '$1.120.000', location: 'Cali, CO', device: 'iPad Air · Safari', status: 'En revisión', score: 58, reason: 'Dispositivo secundario vinculado a la cuenta; validación rápida en curso.' }
+        ];
+        let demoIndex = 0;
+
+        function simulateNewTransaction() {
+            const scenario = demoScenarios[demoIndex % demoScenarios.length];
+            demoIndex++;
+
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            const nextNum = 8943 + demoIndex;
+
+            const newTx = {
+                id: `TX-${nextNum}`,
+                amount: scenario.amount,
+                location: scenario.location,
+                device: scenario.device,
+                time: timeStr,
+                status: scenario.status,
+                score: scenario.score,
+                reason: scenario.reason
+            };
+
+            // Animar brevemente los pasos del pipeline
+            const steps = document.querySelectorAll('.step-icon');
+            steps.forEach((icon, i) => {
+                setTimeout(() => {
+                    icon.classList.add('scale-110', 'ring-4', 'ring-brand-gold/50');
+                    setTimeout(() => icon.classList.remove('scale-110', 'ring-4', 'ring-brand-gold/50'), 350);
+                }, i * 120);
+            });
+
+            transactions.unshift(newTx);
+            // Resetear filtro a Todos para ver la nueva transacción
+            currentFilter = 'Todos';
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('bg-brand-navy', 'text-white', 'font-bold');
+                b.classList.add('bg-white', 'border', 'border-slate-200', 'text-slate-600', 'font-semibold');
+            });
+            const allBtn = document.querySelector('[data-filter="Todos"]');
+            allBtn.classList.remove('bg-white', 'border', 'border-slate-200', 'text-slate-600', 'font-semibold');
+            allBtn.classList.add('bg-brand-navy', 'text-white', 'font-bold');
+
+            renderTable(true);
+        }
+
+        // Botón del Header "Ver Demo en Vivo"
+        function triggerLiveDemo() {
+            const section = document.getElementById('monitoreo');
+            section.scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => {
+                simulateNewTransaction();
+            }, 650);
+        }
+
+        // Modal de Inspección de Transacción
+        function openTxModal(id) {
+            const tx = transactions.find(t => t.id === id);
+            if (!tx) return;
+
+            document.getElementById('modalTxId').textContent = tx.id;
+            document.getElementById('modalAmount').textContent = tx.amount + ' COP';
+            document.getElementById('modalTime').textContent = tx.time;
+            document.getElementById('modalLocation').textContent = tx.location;
+            document.getElementById('modalDevice').textContent = tx.device;
+            document.getElementById('modalReason').textContent = tx.reason;
+            document.getElementById('modalBadgeContainer').innerHTML = getStatusBadge(tx.status);
+
+            const scoreText = document.getElementById('modalScoreText');
+            const scoreBar = document.getElementById('modalScoreBar');
+            const iconBox = document.getElementById('modalIconBox');
+
+            scoreText.textContent = `${tx.score}/100`;
+            scoreBar.style.width = `${tx.score}%`;
+
+            if (tx.status === 'Sospechosa') {
+                scoreBar.className = 'h-full rounded-full transition-all duration-500 bg-brand-red';
+                iconBox.className = 'w-12 h-12 rounded-2xl flex items-center justify-center bg-red-100 text-brand-red';
+            } else if (tx.status === 'En revisión') {
+                scoreBar.className = 'h-full rounded-full transition-all duration-500 bg-brand-gold';
+                iconBox.className = 'w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-100 text-amber-700';
+            } else {
+                scoreBar.className = 'h-full rounded-full transition-all duration-500 bg-brand-green';
+                iconBox.className = 'w-12 h-12 rounded-2xl flex items-center justify-center bg-green-100 text-brand-green';
+            }
+
+            const modal = document.getElementById('txModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTxModal() {
+            const modal = document.getElementById('txModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('txModal').addEventListener('click', (e) => {
+            if (e.target.id === 'txModal') closeTxModal();
+        });
+
+        // Render inicial de la tabla
+        renderTable();
+    </script>
+</body>
+</html>
